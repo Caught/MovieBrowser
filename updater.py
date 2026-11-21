@@ -22,8 +22,8 @@ from . import _
 PLUGIN_DIR = "/usr/lib/enigma2/python/Plugins/Extensions/MovieBrowser"
 
 # >>> aanpassen naar je eigen GitHub-repo <<<
-PLUGIN_ZIP_URL = "https://github.com/GEBRUIKER/REPO/archive/refs/heads/main.zip"
-REMOTE_PLUGIN_URL = "https://raw.githubusercontent.com/GEBRUIKER/REPO/main/plugin.py"
+PLUGIN_ZIP_URL = "https://github.com/Caught/REPO/archive/refs/heads/main.zip"
+REMOTE_PLUGIN_URL = "https://raw.githubusercontent.com/Caught/REPO/main/plugin.py"
 
 # deze mappen blijven bij een update onaangeroerd (database, cache, logs)
 KEEP = ("db/", "log/")
