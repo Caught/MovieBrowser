@@ -21,11 +21,9 @@ from . import _
 
 PLUGIN_DIR = "/usr/lib/enigma2/python/Plugins/Extensions/MovieBrowser"
 
-# >>> aanpassen naar je eigen GitHub-repo <<<
-PLUGIN_ZIP_URL = "https://github.com/Caught/REPO/archive/refs/heads/main.zip"
-REMOTE_PLUGIN_URL = "https://raw.githubusercontent.com/Caught/REPO/main/plugin.py"
+PLUGIN_ZIP_URL = "https://github.com/Caught/MovieBrowser/archive/refs/heads/main.zip"
+REMOTE_PLUGIN_URL = "https://raw.githubusercontent.com/Caught/MovieBrowser/refs/heads/main/plugin.py"
 
-# deze mappen blijven bij een update onaangeroerd (database, cache, logs)
 KEEP = ("db/", "log/")
 
 
@@ -34,7 +32,6 @@ def _open(url, timeout=20):
     try:
         return urlopen(req, timeout=timeout)
     except Exception:
-        # oudere images (python 2 / oude CA-lijst): zonder certificaatcontrole
         ctx = ssl._create_unverified_context()
         return urlopen(req, timeout=timeout, context=ctx)
 
@@ -58,7 +55,6 @@ def installZip(data):
     names = [n for n in z.namelist() if not n.endswith("/")]
     prefix = ""
     if "plugin.py" not in names:
-        # GitHub-archive heeft een bovenliggende map: die weglaten
         top = names[0].split("/")[0] + "/" if names else ""
         if top and all(n.startswith(top) for n in names) \
                 and top + "plugin.py" in names:
@@ -66,7 +62,6 @@ def installZip(data):
         else:
             raise Exception("plugin.py not found in zip")
     base = abspath(PLUGIN_DIR)
-    # eerst alles in het geheugen lezen, dan pas schrijven
     files = [(n[len(prefix):], z.read(n)) for n in names]
     count = 0
     for rel, content in files:
@@ -96,7 +91,6 @@ class PluginUpdater(object):
     def start(self):
         Thread(target=self._check).start()
 
-    # ---- versiecontrole (achtergrond-thread) ----
     def _check(self):
         remote, err = None, None
         try:
@@ -124,7 +118,6 @@ class PluginUpdater(object):
                 remote, self.current),
             MessageBox.TYPE_YESNO)
 
-    # ---- downloaden + installeren (achtergrond-thread) ----
     def _answer(self, answer):
         if answer:
             Thread(target=self._download).start()
