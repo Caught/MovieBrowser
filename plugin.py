@@ -33,6 +33,7 @@ from re import sub, search, findall, S, escape
 from os import statvfs, remove, rename, walk, popen, makedirs
 from os.path import exists, join, getsize, getmtime
 from enigma import (
+    RT_HALIGN_CENTER,
     RT_HALIGN_LEFT,
     RT_VALIGN_CENTER,
     eListboxPythonMultiContent,
@@ -1768,9 +1769,6 @@ class movieBrowserMetrix(Screen):
         return
 
     def _infoKeyOk(self):
-        # De INFO-toets geeft vaak twee meldingen (showEventInfo + EPGPressed).
-        # Een tweede melding binnen 0,6 s negeren we, anders gaat de info
-        # meteen weer uit.
         import time
         now = time.time()
         if now - getattr(self, '_lastToggle', 0) < 0.6:
@@ -2877,7 +2875,7 @@ class movieBrowserMetrix(Screen):
             self.ready = False
             self.session.openWithCallback(
                 self.styleChosen,
-                ChoiceBox,
+                StyleMenu,
                 title=_('Select style'),
                 list=styleChoices())
 
@@ -5781,7 +5779,7 @@ class movieBrowserBackdrop(Screen):
             self.ready = False
             self.session.openWithCallback(
                 self.styleChosen,
-                ChoiceBox,
+                StyleMenu,
                 title=_('Select style'),
                 list=styleChoices())
 
@@ -9289,7 +9287,7 @@ class movieBrowserPosterwall(Screen):
             self.ready = False
             self.session.openWithCallback(
                 self.styleChosen,
-                ChoiceBox,
+                StyleMenu,
                 title=_('Select style'),
                 list=styleChoices())
 
@@ -9732,12 +9730,111 @@ DISCOVER_VISIBLE = 7
 
 
 def styleChoices(include_discover=True):
-    # Keuzelijst voor het stijlmenu (rode toets)
-    items = [('METRIX', 1), ('BACKDROP', 2), ('POSTERWALL', 3)]
+    items = [('POSTERWALL', 1), ('BACKDROP', 2), ('METRIX', 3)] 
     if include_discover:
         items.insert(0, ('DISCOVER MOVIES', 4))
     return items
 
+class StyleMenu(Screen):
+    
+    def __init__(self, session, title='', list=None):
+        items = list or styleChoices()
+        width = getDesktop(0).size().width() or 1280
+        f = width / 1920.0
+
+        def S(v):
+            return int(round(v * f))
+
+        bg = join(skin_directory, 'pic', 'setup', 'main1.png')
+        skin = (
+            '<screen name="StyleMenu" position="center,center" '
+            'size="%d,%d" backgroundColor="#20000000" flags="wfNoBorder" '
+            'title=" ">'
+            '<ePixmap position="0,0" size="%d,%d" pixmap="%s" scale="1" '
+            'zPosition="-1"/>'
+            '<eLabel text="MovieBrowser" position="%d,%d" size="%d,%d" '
+            'font="LCD;%d" foregroundColor="yellow" '
+            'backgroundColor="#000000" transparent="1" zPosition="3"/>'
+            '<eLabel position="%d,%d" size="%d,%d" '
+            'backgroundColor="#303030" zPosition="4"/>'
+            '<eLabel position="%d,%d" size="%d,%d" '
+            'backgroundColor="#303030" zPosition="4"/>'
+            '<widget name="desc" position="%d,%d" size="%d,%d" '
+            'font="Regular;%d" foregroundColor="#007fcfff" halign="center" '
+            'valign="center" transparent="1" zPosition="3"/>' % (
+                S(1920), S(1080),
+                S(1920), S(1080), bg,
+                S(233), 0, S(806), S(120), S(102),
+                S(230), S(120), S(810), S(3),
+                S(230), S(960), S(810), S(3),
+                S(230), S(890), S(810), S(60), S(30)))
+        for i in range(len(items)):
+            pos = '%d,%d' % (S(220), S(160 + 60 * i))
+            size = '%d,%d' % (S(820), S(60))
+            skin += (
+                '<widget name="l%d" position="%s" size="%s" '
+                'font="Regular;%d" halign="center" valign="center" '
+                'foregroundColor="#007fcfff" backgroundColor="#001b3c85" '
+                'transparent="1" zPosition="1"/>'
+                '<widget name="s%d" position="%s" size="%s" '
+                'font="Regular;%d" halign="center" valign="center" '
+                'foregroundColor="#ffffff" backgroundColor="#001b3c85" '
+                'transparent="0" zPosition="1"/>' % (
+                    i, pos, size, S(40), i, pos, size, S(40)))
+        skin += '</screen>'
+        self.skin = skin
+        Screen.__init__(self, session)
+        self.choices = items
+        self.index = 0
+        for i, item in enumerate(items):
+            self['l%d' % i] = Label(item[0])
+            self['s%d' % i] = Label(item[0])
+        self['desc'] = Label('')
+        keys = {
+            'ok': self.ok,
+            'cancel': self.cancel,
+            'up': self.up,
+            'down': self.down,
+            'red': self.down}
+        for n in range(1, len(items) + 1):
+            keys[str(n)] = (lambda n=n: self.pick(n - 1))
+        self['actions'] = ActionMap(
+            ['OkCancelActions', 'DirectionActions',
+             'ColorActions', 'NumberActions'], keys, -1)
+        self.updateSel()
+
+    def updateSel(self):
+        for i in range(len(self.choices)):
+            if i == self.index:
+                self['l%d' % i].hide()
+                self['s%d' % i].show()
+            else:
+                self['s%d' % i].hide()
+                self['l%d' % i].show()
+        text = {
+            4: _('Popular, top rated and upcoming films from TMDb'),
+            1: _('List view with poster and details'),
+            2: _('Backdrop view with poster strip'),
+            3: _('Wall of posters')}
+        self['desc'].setText(text.get(self.choices[self.index][1], ''))
+
+    def up(self):
+        self.index = (self.index - 1) % len(self.choices)
+        self.updateSel()
+
+    def down(self):
+        self.index = (self.index + 1) % len(self.choices)
+        self.updateSel()
+
+    def pick(self, index):
+        self.index = index
+        self.ok()
+
+    def ok(self):
+        self.close(self.choices[self.index])
+
+    def cancel(self):
+        self.close(None)
 
 def discoverSkin(fhd, skindir):
     
@@ -9762,7 +9859,7 @@ def discoverSkin(fhd, skindir):
                 'alphatest="blend" transparent="1" zPosition="%d"/>' % (
                     name, S(x), S(y), S(w), S(h), z))
 
-    ROW_Y = 635  # bovenkant van de postersrij
+    ROW_Y = 635  
     geo = {'f': f, 'W': W, 'H': H, 'slots': [], 'sel_dx': -4, 'sel_dy': -4}
     x = []
     x.append('<screen name="movieBrowserDiscover" position="center,center" '
@@ -9809,7 +9906,6 @@ def discoverSkin(fhd, skindir):
     x.append(lab('credit', 1000, 1046, 860, 32, 20, '#808080', 'right'))
     x.append('</screen>')
     return '\n'.join(x), geo
-
 
 class movieBrowserDiscover(Screen):
 
@@ -10191,7 +10287,7 @@ class movieBrowserDiscover(Screen):
         self['ratingsback'].show()
         meta = [item['year']]
         if detail.get('runtime'):
-            meta.append('%s min' % detail['runtime'])
+            meta.append(_('%s min') % detail['runtime'])
         self['meta'].setText('  |  '.join(m for m in meta if m))
         if detail.get('genres'):
             self['genres'].setText(_('Genres:') + ' ' + detail['genres'])
@@ -10363,9 +10459,9 @@ class movieBrowserDiscover(Screen):
     def switchStyle(self):
         self.session.openWithCallback(
             self.styleChosen,
-            ChoiceBox,
+            StyleMenu,
             title=_('Select style'),
-            list=styleChoices(False))
+            list=styleChoices())
 
     def styleChosen(self, choice):
         if choice:
