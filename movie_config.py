@@ -256,6 +256,8 @@ except OSError as e:
 config.plugins.moviebrowser.cleanup = ConfigYesNo(default=False)
 config.plugins.moviebrowser.backup = ConfigYesNo(default=False)
 config.plugins.moviebrowser.restore = ConfigYesNo(default=False)
+config.plugins.moviebrowser.update = ConfigYesNo(default=False)
+config.plugins.moviebrowser.autoupdate = ConfigSelection(default='off', choices=[('off', _('Off')), ('check', _('Check only')), ('install', _('Install automatically'))])
 config.plugins.moviebrowser.transparency = ConfigSlider(
     default=255, limits=(100, 255))
 
@@ -1629,6 +1631,15 @@ class movieBrowserConfig(ConfigListScreen, Screen):
                 config.plugins.moviebrowser.restore))
         list.append(
             getConfigListEntry(
+                _('Check for Plugin Update:'),
+                config.plugins.moviebrowser.update))
+        list.append(
+            getConfigListEntry(
+                _('Plugin Auto Update:'),
+                config.plugins.moviebrowser.autoupdate))
+        
+        list.append(
+            getConfigListEntry(
                 _('Select Skin (GUI Restart Required):'),
                 config.plugins.moviebrowser.skin))
         list.append(
@@ -1694,7 +1705,10 @@ class movieBrowserConfig(ConfigListScreen, Screen):
         # Restore database if requested
         elif current == getConfigListEntry(_('Restore Database:'), config.plugins.moviebrowser.restore):
             self.restoreDatabase()
-        # Cleanup cache folder if requested
+        
+        elif current == getConfigListEntry(_('Check for Plugin Update:'), config.plugins.moviebrowser.update):
+            self.checkPluginUpdate()
+        
         elif current == getConfigListEntry(_('Cleanup Cache Folder:'), config.plugins.moviebrowser.cleanup):
             self.cleanupCache()
         self.createSetup()
@@ -1745,6 +1759,15 @@ class movieBrowserConfig(ConfigListScreen, Screen):
                 close_on_any_key=True)
         config.plugins.moviebrowser.backup.setValue(False)
         config.plugins.moviebrowser.backup.save()
+        configfile.load()
+
+    def checkPluginUpdate(self):
+        if config.plugins.moviebrowser.update.value:
+            from .plugin import version
+            from .updater import PluginUpdater
+            PluginUpdater(self.session, version).start()
+        config.plugins.moviebrowser.update.setValue(False)
+        config.plugins.moviebrowser.update.save()
         configfile.load()
 
     def restoreDatabase(self):

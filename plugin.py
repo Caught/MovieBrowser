@@ -14569,6 +14569,13 @@ timerupdate = timerUpdate()
 def autostart(reason, **kwargs):
     global infobarsession
     if 'session' in kwargs:
+        try:
+            mode = config.plugins.moviebrowser.autoupdate.value
+            if mode != 'off':
+                from .updater import autoCheck
+                autoCheck(kwargs['session'], version, mode)
+        except Exception as e:
+            print('[MovieBrowser] autoCheck failed:', e)
         info = _('*******Movie Browser Database Update*******\n')
         with open(UPDATE_LOG_PATH, 'w', encoding='utf-8') as f:
             f.write(info)

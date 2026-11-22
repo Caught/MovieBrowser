@@ -15,15 +15,19 @@ except ImportError:
     from urllib2 import urlopen, Request
 
 from twisted.internet import reactor
+from enigma import quitMainloop
+from Tools import Notifications
 from Screens.MessageBox import MessageBox
 from Screens.Standby import TryQuitMainloop
 from . import _
 
 PLUGIN_DIR = "/usr/lib/enigma2/python/Plugins/Extensions/MovieBrowser"
 
+# >>> aanpassen naar je eigen GitHub-repo <<<
 PLUGIN_ZIP_URL = "https://github.com/Caught/MovieBrowser/archive/refs/heads/main.zip"
 REMOTE_PLUGIN_URL = "https://raw.githubusercontent.com/Caught/MovieBrowser/refs/heads/main/plugin.py"
 
+# deze mappen blijven bij een update onaangeroerd (database, cache, logs)
 KEEP = ("db/", "log/")
 
 
@@ -32,6 +36,7 @@ def _open(url, timeout=20):
     try:
         return urlopen(req, timeout=timeout)
     except Exception:
+        # oudere images (python 2 / oude CA-lijst): zonder certificaatcontrole
         ctx = ssl._create_unverified_context()
         return urlopen(req, timeout=timeout, context=ctx)
 
@@ -55,6 +60,7 @@ def installZip(data):
     names = [n for n in z.namelist() if not n.endswith("/")]
     prefix = ""
     if "plugin.py" not in names:
+        # GitHub-archive heeft een bovenliggende map: die weglaten
         top = names[0].split("/")[0] + "/" if names else ""
         if top and all(n.startswith(top) for n in names) \
                 and top + "plugin.py" in names:
@@ -62,6 +68,7 @@ def installZip(data):
         else:
             raise Exception("plugin.py not found in zip")
     base = abspath(PLUGIN_DIR)
+    # eerst alles in het geheugen lezen, dan pas schrijven
     files = [(n[len(prefix):], z.read(n)) for n in names]
     count = 0
     for rel, content in files:
@@ -83,14 +90,18 @@ def installZip(data):
 
 class PluginUpdater(object):
 
-    def __init__(self, session, current_version):
+    # mode: 'ask' = via menu (met schermen), 'check' = stil controleren en
+    # melden, 'install' = stil controleren en installeren
+    def __init__(self, session, current_version, mode='ask'):
         self.session = session
         self.current = current_version
+        self.mode = mode
         self.remote = None
 
     def start(self):
         Thread(target=self._check).start()
 
+    # ---- versiecontrole (achtergrond-thread) ----
     def _check(self):
         remote, err = None, None
         try:
@@ -100,17 +111,29 @@ class PluginUpdater(object):
         reactor.callFromThread(self._checked, remote, err)
 
     def _checked(self, remote, err):
+        silent = self.mode != 'ask'
         if err:
-            self.session.open(
-                MessageBox, _("Update check failed:\n%s") % err,
-                MessageBox.TYPE_ERROR, timeout=10)
+            if not silent:
+                self.session.open(
+                    MessageBox, _("Update check failed:\n%s") % err,
+                    MessageBox.TYPE_ERROR, timeout=10)
             return
         self.remote = remote
         if _vt(remote) <= _vt(self.current):
-            self.session.open(
-                MessageBox,
-                _("You already have the latest version (%s).") % self.current,
-                MessageBox.TYPE_INFO, timeout=5)
+            if not silent:
+                self.session.open(
+                    MessageBox,
+                    _("You already have the latest version (%s).") %
+                    self.current, MessageBox.TYPE_INFO, timeout=5)
+            return
+        if self.mode == 'install':
+            Thread(target=self._download).start()
+            return
+        if self.mode == 'check':
+            Notifications.AddPopup(
+                _("Movie Browser: new version %s available (installed: %s).\n"
+                  "Install it via the plugin setup.") % (remote, self.current),
+                MessageBox.TYPE_INFO, 15)
             return
         self.session.openWithCallback(
             self._answer, MessageBox,
@@ -118,6 +141,7 @@ class PluginUpdater(object):
                 remote, self.current),
             MessageBox.TYPE_YESNO)
 
+    # ---- downloaden + installeren (achtergrond-thread) ----
     def _answer(self, answer):
         if answer:
             Thread(target=self._download).start()
@@ -131,6 +155,14 @@ class PluginUpdater(object):
         reactor.callFromThread(self._installed, count, err)
 
     def _installed(self, count, err):
+        if self.mode != 'ask':
+            if not err:
+                Notifications.AddNotificationWithCallback(
+                    self._restartSilent, MessageBox,
+                    _("Movie Browser updated to version %s.\n"
+                      "Restart GUI now?") % self.remote,
+                    MessageBox.TYPE_YESNO, 30)
+            return
         if err:
             self.session.open(
                 MessageBox, _("Update failed:\n%s") % err,
@@ -145,3 +177,14 @@ class PluginUpdater(object):
     def _restart(self, answer):
         if answer:
             self.session.open(TryQuitMainloop, 3)
+
+    def _restartSilent(self, answer):
+        if answer:
+            quitMainloop(3)
+
+
+def autoCheck(session, current_version, mode):
+    # 90 s wachten, zodat het netwerk na het opstarten klaar is
+    if mode in ('check', 'install'):
+        updater = PluginUpdater(session, current_version, mode)
+        reactor.callLater(90, updater.start)
