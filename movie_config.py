@@ -1581,7 +1581,7 @@ class movieBrowserConfig(ConfigListScreen, Screen):
                 config.plugins.moviebrowser.metrixcolor))
         list.append(
             getConfigListEntry(
-                _('TMDb/TheTVDb Language:'),
+                _('TMDb Language:'),
                 config.plugins.moviebrowser.language))
         list.append(
             getConfigListEntry(
@@ -1591,14 +1591,6 @@ class movieBrowserConfig(ConfigListScreen, Screen):
             getConfigListEntry(
                 _("Sign up on TMDb and enter your free personal API Key"),
                 config.plugins.moviebrowser.txtapi))
-        list.append(
-            getConfigListEntry(
-                _("Load TheTVDb API Key from /tmp/thetvdb_api.txt"),
-                config.plugins.moviebrowser.tvdbapi))
-        list.append(
-            getConfigListEntry(
-                _("Sign up on TheTVDb and enter your free personal API Key"),
-                config.plugins.moviebrowser.txttvdbapi))
         list.append(
             getConfigListEntry(
                 _('Update Database with Timer:'),
@@ -1631,15 +1623,6 @@ class movieBrowserConfig(ConfigListScreen, Screen):
                 config.plugins.moviebrowser.restore))
         list.append(
             getConfigListEntry(
-                _('Check for Plugin Update:'),
-                config.plugins.moviebrowser.update))
-        list.append(
-            getConfigListEntry(
-                _('Plugin Auto Update:'),
-                config.plugins.moviebrowser.autoupdate))
-        
-        list.append(
-            getConfigListEntry(
                 _('Select Skin (GUI Restart Required):'),
                 config.plugins.moviebrowser.skin))
         list.append(
@@ -1654,9 +1637,21 @@ class movieBrowserConfig(ConfigListScreen, Screen):
             getConfigListEntry(
                 _('Plugin in Enigma Menu:'),
                 config.plugins.moviebrowser.showmenu))
+        list.append(
+            getConfigListEntry(
+                _('Plugin in Enigma Menu:'),
+                config.plugins.moviebrowser.showmenu))
+        list.append(
+            getConfigListEntry(
+                _('Check for Plugin Update:'),
+                config.plugins.moviebrowser.update))
+        list.append(
+            getConfigListEntry(
+                _('Plugin Auto Update:'),
+                config.plugins.moviebrowser.autoupdate))
         self["config"].list = list
         self["config"].l.setList(list)
-
+        
     def finished(self, retval):
         del self.container.appClosed[:]
         del self.container
