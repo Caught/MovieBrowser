@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: moviebrowser\n"
 "POT-Creation-Date: 2026-11-13 12:00+0100\n"
-"PO-Revision-Date: 2026-11-13 12:00+0100\n"
+"PO-Revision-Date: 2026-11-22 17:56+0100\n"
 "Last-Translator: \n"
 "Language-Team: lululla\n"
 "Language: nl\n"
@@ -1110,6 +1110,38 @@ msgid ""
 "Restart GUI now?"
 msgstr ""
 "Bijgewerkt naar versie %s (%d bestanden).\n"
+"GUI nu herstarten?"
+
+msgid "Check for Plugin Update:"
+msgstr "Controleren op plugin-update:"
+
+msgid "Plugin Auto Update:"
+msgstr "Automatische plugin-update:"
+
+msgid "Off"
+msgstr "Uit"
+
+msgid "Check only"
+msgstr "Alleen controleren"
+
+msgid "Install automatically"
+msgstr "Automatisch installeren"
+
+msgid "TMDb Language:"
+msgstr "TMDb-taal:"
+
+msgid ""
+"Movie Browser: new version %s available (installed: %s).\n"
+"Install it via the plugin setup."
+msgstr ""
+"Movie Browser: nieuwe versie %s beschikbaar (geïnstalleerd: %s).\n"
+"Installeer deze via de plugin-instellingen."
+
+msgid ""
+"Movie Browser updated to version %s.\n"
+"Restart GUI now?"
+msgstr ""
+"Movie Browser is bijgewerkt naar versie %s.\n"
 "GUI nu herstarten?"
 
 #~ msgid "Edit"
