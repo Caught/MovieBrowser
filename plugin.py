@@ -352,7 +352,6 @@ class movieBrowserMetrix(Screen):
             'leavePlayer': self.markSeen,
             '1': self.controlMovies,
             '2': self.renewTMDb,
-            '3': self.renewTVDb,
             '4': self.filterSeen,
             '5': self.toogleContent,
             '6': self.filterFolder,
@@ -2929,6 +2928,9 @@ class movieBrowserMetrix(Screen):
         elif number == 4:
             self.session.openWithCallback(
                 self.returnStyle, movieBrowserDiscover)
+        elif number == 5:
+            self.session.openWithCallback(
+                self.returnStyle, movieBrowserDiscoverSeries)
         return
 
     def toogleContent(self):
@@ -5834,6 +5836,9 @@ class movieBrowserBackdrop(Screen):
         elif number == 4:
             self.session.openWithCallback(
                 self.returnStyle, movieBrowserDiscover)
+        elif number == 5:
+            self.session.openWithCallback(
+                self.returnStyle, movieBrowserDiscoverSeries)
         return
 
     def toogleContent(self):
@@ -9340,6 +9345,9 @@ class movieBrowserPosterwall(Screen):
         elif number == 4:
             self.session.openWithCallback(
                 self.returnStyle, movieBrowserDiscover)
+        elif number == 5:
+            self.session.openWithCallback(
+                self.returnStyle, movieBrowserDiscoverSeries)
         return
 
     def toogleContent(self):
@@ -9730,9 +9738,9 @@ DISCOVER_VISIBLE = 7
 
 
 def styleChoices(include_discover=True):
-    items = [('POSTERWALL', 1), ('BACKDROP', 2), ('METRIX', 3)] 
+    items = [('POSTERWALL', 3), ('BACKDROP', 2), ('METRIX', 1)]
     if include_discover:
-        items.insert(0, ('DISCOVER MOVIES', 4))
+        items = [('DISCOVER MOVIES', 4), ('DISCOVER SERIES', 5)] + items
     return items
 
 class StyleMenu(Screen):
@@ -9753,7 +9761,7 @@ class StyleMenu(Screen):
             '<ePixmap position="0,0" size="%d,%d" pixmap="%s" scale="1" '
             'zPosition="-1"/>'
             '<eLabel text="MovieBrowser" position="%d,%d" size="%d,%d" '
-            'font="LCD;%d" foregroundColor="yellow" '
+            'font="LCD;%d" foregroundColor="yellow" halign="center" '
             'backgroundColor="#000000" transparent="1" zPosition="3"/>'
             '<eLabel position="%d,%d" size="%d,%d" '
             'backgroundColor="#303030" zPosition="4"/>'
@@ -9812,10 +9820,11 @@ class StyleMenu(Screen):
                 self['s%d' % i].hide()
                 self['l%d' % i].show()
         text = {
-            4: _('Popular, top rated and upcoming films from TMDb'),
             1: _('List view with poster and details'),
             2: _('Backdrop view with poster strip'),
-            3: _('Wall of posters')}
+            3: _('Wall of posters'),
+            4: _('Popular, top rated and upcoming films from TMDb'),
+            5: _('Popular, top rated and airing series from TMDb')}
         self['desc'].setText(text.get(self.choices[self.index][1], ''))
 
     def up(self):
@@ -9847,12 +9856,13 @@ def discoverSkin(fhd, skindir):
         return int(round(v * f))
 
     def lab(name, x, y, w, h, size, color='#FFFFFF', halign='left', z=5,
-            valign='center'):
+            valign='center', shadow=False):
+        extra = ' shadowColor="#000000" shadowOffset="-1,-1"' if shadow else ''
         return ('<widget name="%s" position="%d,%d" size="%d,%d" '
                 'font="Regular;%d" foregroundColor="%s" halign="%s" '
-                'valign="%s" transparent="1" zPosition="%d"/>' % (
+                'valign="%s" transparent="1" zPosition="%d"%s/>' % (
                     name, S(x), S(y), S(w), S(h), S(size), color, halign,
-                    valign, z))
+                    valign, z, extra))
 
     def pix(name, x, y, w, h, z=1):
         return ('<widget name="%s" position="%d,%d" size="%d,%d" scale="1" '
@@ -9870,7 +9880,7 @@ def discoverSkin(fhd, skindir):
     x.append(pix('panel_row', 30, ROW_Y, 1860, 1080 - ROW_Y, z=-3))
     x.append(lab('head', 60, 30, 1200, 60, 40, '#B0B0B0'))
     for i in range(4):
-        x.append(lab('cat%d' % i, 60 + i * 300, 105, 280, 50, 34))
+        x.append(lab('cat%d' % i, 60 + i * 300, 105, 300, 60, 40, shadow=True))
     x.append(lab('counter', 1500, 105, 360, 50, 30, '#B0B0B0', 'right'))
     x.append(lab('title', 60, 205, 1800, 85, 64))
     x.append('<widget name="ratingsback" position="%d,%d" size="%d,%d" '
@@ -9908,6 +9918,8 @@ def discoverSkin(fhd, skindir):
     return '\n'.join(x), geo
 
 class movieBrowserDiscover(Screen):
+    tv = False
+    styleNumber = 4
 
     def __init__(self, session):
         fhd = screenwidth.width() >= 1920
@@ -9918,6 +9930,13 @@ class movieBrowserDiscover(Screen):
             ('top_rated', _('Top Rated')),
             ('now_playing', _('New Releases')),
             ('upcoming', _('Upcoming'))]
+        
+        if self.tv:
+            self.categories = [
+                ('popular', _('Popular')),
+                ('top_rated', _('Top Rated')),
+                ('airing_today', _('Airing Today')),
+                ('on_the_air', _('On The Air'))]
         self.language = config.plugins.moviebrowser.language.value
         self.cache = {}
         self.details = {}
@@ -9981,7 +10000,7 @@ class movieBrowserDiscover(Screen):
         self.onLayoutFinish.append(self.onLayoutFinished)
 
     def onLayoutFinished(self):
-        self['head'].setText('MOVIE BROWSER  |  DISCOVER  |  ' + _('Movies'))
+        self['head'].setText('MOVIE BROWSER  |  DISCOVER  |  ' + (_('Series') if self.tv else _('Movies')))
         self['credit'].setText(
             'This product uses the TMDB API but is not endorsed or '
             'certified by TMDB.')
@@ -10007,13 +10026,12 @@ class movieBrowserDiscover(Screen):
             self['backdrop'].show()
 
     def loadLibrary(self):
-        # Titels die al in je database staan
         self.library = {}
         try:
             if fileExists(DATABASE_PATH):
                 with open(DATABASE_PATH, 'r', encoding='utf-8') as f:
                     for line in f:
-                        if ':::Movie:Top:::' not in line:
+                        if (':::Series:Top:::' if self.tv else ':::Movie:Top:::') not in line:
                             continue
                         parts = line.split(':::')
                         name = parts[0].strip().lower()
@@ -10026,10 +10044,10 @@ class movieBrowserDiscover(Screen):
         years = self.library.get(item.get('title', '').strip().lower())
         if not years:
             return False
+        if self.tv:
+            return True
         year = item.get('year', '')
         return (not year) or (year in years) or ('' in years)
-
-    # ---------- categorieen en lijsten ----------
 
     def paintCategories(self):
         try:
@@ -10039,7 +10057,7 @@ class movieBrowserDiscover(Screen):
         for i, (key, text) in enumerate(self.categories):
             self['cat%d' % i].setText(text)
             if parseColor is not None and self['cat%d' % i].instance:
-                color = '#FFD700' if i == self.cat else '#8A8A8A'
+                color = '#FFD700' if i == self.cat else '#FFFFFF'
                 self['cat%d' % i].instance.setForegroundColor(
                     parseColor(color))
 
@@ -10115,7 +10133,7 @@ class movieBrowserDiscover(Screen):
             region = self.tmdbRegion()
             if region:
                 extra += '&region=' + region
-        url = self.tmdbUrl('movie/' + key, extra)
+        url = self.tmdbUrl(('tv/' if self.tv else 'movie/') + key, extra)
 
         def success(output, *args, **kwargs):
             self.onList(output, key, page)
@@ -10147,8 +10165,8 @@ class movieBrowserDiscover(Screen):
             if page <= entry['page']:
                 return
             for r in data.get('results', []):
-                title = r.get('title') or r.get('original_title') or ''
-                date = r.get('release_date') or ''
+                title = (r.get('name') or r.get('original_name') if self.tv else r.get('title') or r.get('original_title')) or ''
+                date = (r.get('first_air_date') if self.tv else r.get('release_date')) or ''
                 entry['items'].append({
                     'id': r.get('id'),
                     'title': title,
@@ -10286,6 +10304,8 @@ class movieBrowserDiscover(Screen):
         self['ratings'].show()
         self['ratingsback'].show()
         meta = [item['year']]
+        if detail.get('seasons'):
+            meta.append(_('Seasons: %s') % detail['seasons'])
         if detail.get('runtime'):
             meta.append(_('%s min') % detail['runtime'])
         self['meta'].setText('  |  '.join(m for m in meta if m))
@@ -10294,7 +10314,7 @@ class movieBrowserDiscover(Screen):
         else:
             self['genres'].setText('')
         if detail.get('director'):
-            self['director'].setText(_('Director:') + ' ' + detail['director'])
+            self['director'].setText((_('Creator:') if self.tv else _('Director:')) + ' ' + detail['director'])
         else:
             self['director'].setText('')
         self['plot'].setText(item['overview'])
@@ -10362,7 +10382,7 @@ class movieBrowserDiscover(Screen):
         if item is None or item['id'] in self.details:
             return
         mid = item['id']
-        url = self.tmdbUrl('movie/%s' % mid, '&append_to_response=credits')
+        url = self.tmdbUrl(('tv/%s' if self.tv else 'movie/%s') % mid, '&append_to_response=credits')
 
         def success(output, *args, **kwargs):
             self.onDetail(output, mid)
@@ -10385,8 +10405,16 @@ class movieBrowserDiscover(Screen):
             crew = (data.get('credits') or {}).get('crew', [])
             directors = [c.get('name', '') for c in crew
                          if c.get('job') == 'Director']
+            runtime = data.get('runtime') or ''
+            seasons = ''
+            if self.tv:
+                directors = [c.get('name', '') for c in data.get('created_by', [])]
+                times = data.get('episode_run_time') or []
+                runtime = (times[0] if times else '') or (data.get('last_episode_to_air') or {}).get('runtime') or ''
+                seasons = data.get('number_of_seasons') or ''
             self.details[mid] = {
-                'runtime': data.get('runtime') or '',
+                'runtime': runtime,
+                'seasons': seasons,
                 'genres': ', '.join(
                     g.get('name', '') for g in data.get('genres', [])),
                 'director': ', '.join(d for d in directors if d)}
@@ -10461,7 +10489,7 @@ class movieBrowserDiscover(Screen):
             self.styleChosen,
             StyleMenu,
             title=_('Select style'),
-            list=styleChoices())
+            list=[c for c in styleChoices() if c[1] != self.styleNumber])
 
     def styleChosen(self, choice):
         if choice:
@@ -10475,6 +10503,9 @@ class movieBrowserDiscover(Screen):
         else:
             self.close(None)
 
+class movieBrowserDiscoverSeries(movieBrowserDiscover):
+    tv = True
+    styleNumber = 5
 
 class UpdateDatabase():
 
@@ -14449,7 +14480,6 @@ class helpScreen(Screen):
             _('<- -> Button: Go to first letter'),
             _('Button 1: CutListEditor/MovieCut/LogView'),
             _('Button 2: Renew infos on TMDb'),
-            _('Button 3: Renew infos on TheTVDb'),
             _('Button 4: Hide/show seen movies'),
             _('Button 5: Toggle Movies/Series view'),
             _('Button 6: Movie Folder Selection'),
@@ -14569,13 +14599,6 @@ timerupdate = timerUpdate()
 def autostart(reason, **kwargs):
     global infobarsession
     if 'session' in kwargs:
-        try:
-            mode = config.plugins.moviebrowser.autoupdate.value
-            if mode != 'off':
-                from .updater import autoCheck
-                autoCheck(kwargs['session'], version, mode)
-        except Exception as e:
-            print('[MovieBrowser] autoCheck failed:', e)
         info = _('*******Movie Browser Database Update*******\n')
         with open(UPDATE_LOG_PATH, 'w', encoding='utf-8') as f:
             f.write(info)
@@ -14634,7 +14657,7 @@ def checkUpdate(session, **kwargs):
 
 def Plugins(**kwargs):
     from Plugins.Plugin import PluginDescriptor
-    plugindesc = _("Manage your Movies & Series V.%s" % str(version))
+    plugindesc = _("Manage your Movies & Series V.%s") % str(version)
     pluginname = "Movie Browser"
     plugin_list = [
         PluginDescriptor(

@@ -257,6 +257,9 @@ config.plugins.moviebrowser.cleanup = ConfigYesNo(default=False)
 config.plugins.moviebrowser.backup = ConfigYesNo(default=False)
 config.plugins.moviebrowser.restore = ConfigYesNo(default=False)
 config.plugins.moviebrowser.update = ConfigYesNo(default=False)
+config.plugins.moviebrowser.discovermovies = ConfigSelection(default='open', choices=[('open', _('Open'))])
+config.plugins.moviebrowser.discoverseries = ConfigSelection(default='open', choices=[('open', _('Open'))])
+config.plugins.moviebrowser.keyassign = ConfigSelection(default='open', choices=[('open', _('Open'))])
 config.plugins.moviebrowser.autoupdate = ConfigSelection(default='off', choices=[('off', _('Off')), ('check', _('Check only')), ('install', _('Install automatically'))])
 config.plugins.moviebrowser.transparency = ConfigSlider(
     default=255, limits=(100, 255))
@@ -1517,6 +1520,14 @@ class movieBrowserConfig(ConfigListScreen, Screen):
         list = []
         list.append(
             getConfigListEntry(
+                _('Discover Movies:'),
+                config.plugins.moviebrowser.discovermovies))
+        list.append(
+            getConfigListEntry(
+                _('Discover Series:'),
+                config.plugins.moviebrowser.discoverseries))
+        list.append(
+            getConfigListEntry(
                 _('Movies Style:'),
                 config.plugins.moviebrowser.style))
         list.append(
@@ -1641,6 +1652,10 @@ class movieBrowserConfig(ConfigListScreen, Screen):
             getConfigListEntry(
                 _('Plugin in Enigma Menu:'),
                 config.plugins.moviebrowser.showmenu))
+        list.append(
+            getConfigListEntry(
+                _('Movie Browser Key Assignment:'),
+                config.plugins.moviebrowser.keyassign))
         list.append(
             getConfigListEntry(
                 _('Check for Plugin Update:'),
@@ -1851,8 +1866,28 @@ class movieBrowserConfig(ConfigListScreen, Screen):
             self.tvdbkeyApi()
         elif current == config.plugins.moviebrowser.api:
             self.keyApi()
+        elif current == config.plugins.moviebrowser.discovermovies:
+            self.openDiscover(False)
+        elif current == config.plugins.moviebrowser.discoverseries:
+            self.openDiscover(True)
+        elif current == config.plugins.moviebrowser.keyassign:
+            from .plugin import helpScreen
+            self.session.open(helpScreen)
         else:
             self.save()
+
+    def openDiscover(self, tv):
+        from .plugin import movieBrowserDiscover, movieBrowserDiscoverSeries
+        self.session.openWithCallback(
+            self.discoverClosed,
+            movieBrowserDiscoverSeries if tv else movieBrowserDiscover)
+
+    def discoverClosed(self, result=None):
+        # stijl gekozen in Discover: wissel tussen Movies en Series
+        if result == 4:
+            self.openDiscover(False)
+        elif result == 5:
+            self.openDiscover(True)
 
     def openDirectoryBrowser(self, path):
         if not path or not exists(path):
