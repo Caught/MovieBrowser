@@ -1014,6 +1014,171 @@ msgstr "TheTVDb-API-Schlüssel erfolgreich importiert!"
 msgid "Really close without saving settings?"
 msgstr "Wirklich schließen, ohne die Einstellungen zu speichern?"
 
+msgid "Popular"
+msgstr "Beliebt"
+
+msgid "Top Rated"
+msgstr "Bestbewertet"
+
+msgid "New Releases"
+msgstr "Neuerscheinungen"
+
+msgid "Upcoming"
+msgstr "Demnächst"
+
+msgid "In library"
+msgstr "In der Bibliothek"
+
+msgid "Loading..."
+msgstr "Laden..."
+
+msgid "No results"
+msgstr "Keine Ergebnisse"
+
+msgid "TMDb API Server is not reachable."
+msgstr "TMDb-API-Server ist nicht erreichbar."
+
+msgid "OK: Movie information"
+msgstr "OK: Filminformationen"
+
+msgid "Left/Right: Movie"
+msgstr "Links/Rechts: Film"
+
+msgid "Up/Down: Category"
+msgstr "Hoch/Runter: Kategorie"
+
+msgid "Red: Style"
+msgstr "Rot: Stil"
+
+msgid "Exit: Back"
+msgstr "Exit: Zurück"
+
+msgid "Please wait, loading database..."
+msgstr "Bitte warten, Datenbank wird geladen..."
+
+msgid "Select style"
+msgstr "Stil auswählen"
+
+msgid "%s min"
+msgstr "%s Min."
+
+msgid "DISCOVER"
+msgstr "ENTDECKEN"
+
+msgid "DISCOVER MOVIES"
+msgstr "FILME ENTDECKEN"
+
+msgid "Popular, top rated and upcoming films from TMDb"
+msgstr "Beliebte, bestbewertete und kommende Filme von TMDb"
+
+msgid "List view with poster and details"
+msgstr "Listenansicht mit Poster und Details"
+
+msgid "Backdrop view with poster strip"
+msgstr "Hintergrundansicht mit Posterleiste"
+
+msgid "Wall of posters"
+msgstr "Posterwand"
+
+msgid "Check for plugin update"
+msgstr "Nach Plugin-Update suchen"
+
+msgid ""
+"Update check failed:\n"
+"%s"
+msgstr ""
+"Update-Prüfung fehlgeschlagen:\n"
+"%s"
+
+msgid "You already have the latest version (%s)."
+msgstr "Sie haben bereits die neueste Version (%s)."
+
+msgid ""
+"New version %s available (installed: %s).\n"
+"Install now?"
+msgstr ""
+"Neue Version %s verfügbar (installiert: %s).\n"
+"Jetzt installieren?"
+
+msgid ""
+"Update failed:\n"
+"%s"
+msgstr ""
+"Update fehlgeschlagen:\n"
+"%s"
+
+msgid ""
+"Updated to version %s (%d files).\n"
+"Restart GUI now?"
+msgstr ""
+"Auf Version %s aktualisiert (%d Dateien).\n"
+"GUI jetzt neu starten?"
+
+msgid "Check for Plugin Update:"
+msgstr "Nach Plugin-Update suchen:"
+
+msgid "Plugin Auto Update:"
+msgstr "Automatisches Plugin-Update:"
+
+msgid "Off"
+msgstr "Aus"
+
+msgid "Check only"
+msgstr "Nur prüfen"
+
+msgid "Install automatically"
+msgstr "Automatisch installieren"
+
+msgid "TMDb Language:"
+msgstr "TMDb-Sprache:"
+
+msgid ""
+"Movie Browser: new version %s available (installed: %s).\n"
+"Install it via the plugin setup."
+msgstr ""
+"Movie Browser: Neue Version %s verfügbar (installiert: %s).\n"
+"Installation über das Plugin-Setup."
+
+msgid ""
+"Movie Browser updated to version %s.\n"
+"Restart GUI now?"
+msgstr ""
+"Movie Browser wurde auf Version %s aktualisiert.\n"
+"GUI jetzt neu starten?"
+
+msgid "Airing Today"
+msgstr "Heute im Fernsehen"
+
+msgid "On The Air"
+msgstr "Läuft aktuell"
+
+msgid "Creator:"
+msgstr "Ersteller:"
+
+msgid "Seasons: %s"
+msgstr "Staffeln: %s"
+
+msgid "Discover Movies:"
+msgstr "Filme entdecken:"
+
+msgid "Discover Series:"
+msgstr "Serien entdecken:"
+
+msgid "Open"
+msgstr "Öffnen"
+
+msgid "Movie Browser Key Assignment:"
+msgstr "Tastenbelegung des Filmbrowsers:"
+
+msgid "Popular, top rated and airing series from TMDb"
+msgstr "Beliebte, bestbewertete und laufende Serien von TMDb"
+
+msgid "Left/Right: Series"
+msgstr "Links/Rechts: Serie"
+
+msgid "Menu: Setup"
+msgstr "Menü: Einstellungen"
+
 #~ msgid "Edit"
 #~ msgstr "Editieren"
 
