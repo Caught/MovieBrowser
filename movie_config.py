@@ -1642,10 +1642,6 @@ class movieBrowserConfig(ConfigListScreen, Screen):
                 config.plugins.moviebrowser.videobutton))
         list.append(
             getConfigListEntry(
-                _('Plugin Transparency:'),
-                config.plugins.moviebrowser.transparency))
-        list.append(
-            getConfigListEntry(
                 _('Plugin in Enigma Menu:'),
                 config.plugins.moviebrowser.showmenu))
         list.append(

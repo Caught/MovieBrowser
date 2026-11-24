@@ -266,6 +266,7 @@ class movieBrowserMetrix(Screen):
         self['text2'] = Label(_('Style'))
         self['text3'] = Label(_('Help'))
         self['Genres'] = Label(_('Genres:'))
+        self['Rating'] = Label(_('Rating:'))
         self['director'] = Label()
         self['actors'] = Label()
         self['year'] = Label()
@@ -9882,7 +9883,7 @@ def discoverSkin(fhd, skindir):
     x.append(pix('panel_row', 30, ROW_Y, 1860, 1080 - ROW_Y, z=-3))
     x.append(lab('head', 60, 30, 1200, 60, 40, '#B0B0B0'))
     for i in range(4):
-        x.append(lab('cat%d' % i, 60 + i * 300, 105, 300, 60, 40, shadow=True))
+        x.append(lab('cat%d' % i, 60 + i * 340, 105, 340, 60, 40, shadow=True))
     x.append(lab('counter', 1500, 105, 360, 50, 30, '#B0B0B0', 'right'))
     x.append(lab('title', 60, 205, 1800, 85, 64))
     x.append('<widget name="ratingsback" position="%d,%d" size="%d,%d" '
