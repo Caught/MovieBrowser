@@ -167,7 +167,7 @@ def closeWaitBox(session, box):
     except Exception as e:
         print('[MovieBrowser] closeWaitBox: ' + str(e))
 
-version = '4.2'
+version = '4.3'
 screenwidth = getDesktop(0).size()
 dir_plugins = "/usr/lib/enigma2/python/Plugins/Extensions/MovieBrowser"
 if dir_plugins not in path:
