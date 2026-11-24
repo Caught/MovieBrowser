@@ -90,8 +90,11 @@ def installZip(data):
 
 class PluginUpdater(object):
 
-    # mode: 'ask' = via menu (met schermen), 'check' = stil controleren en
-    # melden, 'install' = stil controleren en installeren
+    # mode: 'ask'     = via menu (met schermen, ook "al up-to-date"/fouten)
+    #       'open'    = bij openen van de plugin: stil als er niets nieuws is,
+    #                   anders vraag: downloaden? ja/nee -> herstart? ja/nee
+    #       'check'   = stil controleren en melden
+    #       'install' = stil controleren en installeren
     def __init__(self, session, current_version, mode='ask'):
         self.session = session
         self.current = current_version
@@ -135,11 +138,25 @@ class PluginUpdater(object):
                   "Install it via the plugin setup.") % (remote, self.current),
                 MessageBox.TYPE_INFO, 15)
             return
-        self.session.openWithCallback(
-            self._answer, MessageBox,
+        self._ask(
+            self._answer,
             _("New version %s available (installed: %s).\nInstall now?") % (
-                remote, self.current),
-            MessageBox.TYPE_YESNO)
+                remote, self.current))
+
+    # vraag tonen: bovenop het huidige scherm, anders als melding
+    def _ask(self, callback, text):
+        try:
+            self.session.openWithCallback(
+                callback, MessageBox, text, MessageBox.TYPE_YESNO)
+        except Exception:
+            Notifications.AddNotificationWithCallback(
+                callback, MessageBox, text, MessageBox.TYPE_YESNO)
+
+    def _info(self, text, kind, timeout):
+        try:
+            self.session.open(MessageBox, text, kind, timeout=timeout)
+        except Exception:
+            Notifications.AddPopup(text, kind, timeout)
 
     # ---- downloaden + installeren (achtergrond-thread) ----
     def _answer(self, answer):
@@ -155,7 +172,7 @@ class PluginUpdater(object):
         reactor.callFromThread(self._installed, count, err)
 
     def _installed(self, count, err):
-        if self.mode != 'ask':
+        if self.mode in ('check', 'install'):
             if not err:
                 Notifications.AddNotificationWithCallback(
                     self._restartSilent, MessageBox,
@@ -164,15 +181,13 @@ class PluginUpdater(object):
                     MessageBox.TYPE_YESNO, 30)
             return
         if err:
-            self.session.open(
-                MessageBox, _("Update failed:\n%s") % err,
-                MessageBox.TYPE_ERROR, timeout=10)
+            self._info(_("Update failed:\n%s") % err,
+                       MessageBox.TYPE_ERROR, 10)
             return
-        self.session.openWithCallback(
-            self._restart, MessageBox,
+        self._ask(
+            self._restartSilent if self.mode == 'open' else self._restart,
             _("Updated to version %s (%d files).\nRestart GUI now?") % (
-                self.remote, count),
-            MessageBox.TYPE_YESNO)
+                self.remote, count))
 
     def _restart(self, answer):
         if answer:

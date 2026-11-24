@@ -167,7 +167,7 @@ def closeWaitBox(session, box):
     except Exception as e:
         print('[MovieBrowser] closeWaitBox: ' + str(e))
 
-version = '4.3'
+version = '4.2'
 screenwidth = getDesktop(0).size()
 dir_plugins = "/usr/lib/enigma2/python/Plugins/Extensions/MovieBrowser"
 if dir_plugins not in path:
@@ -14491,8 +14491,21 @@ class helpScreen(Screen):
             _('Button 0: Go to end of list'),
         ]
         return "\n".join(line for line in lines)
+
+_update_asked = [False]
+
+def checkOnOpen(sess):
+    if _update_asked[0]:
+        return
+    _update_asked[0] = True
+    try:
+        from .updater import PluginUpdater
+        PluginUpdater(sess, version, 'open').start()
+    except Exception:
+        pass
     
 def main(session, **kwargs):
+    checkOnOpen(session)
     if config.plugins.moviebrowser.filter.value == ':::Movie:Top:::':
         number = 1
     elif config.plugins.moviebrowser.filter.value == ':::Series:Top:::':
@@ -14541,6 +14554,7 @@ def main(session, **kwargs):
 
 
 def mainInfoBar(session, **kwargs):
+    checkOnOpen(infobarsession)
     if config.plugins.moviebrowser.filter.value == ':::Movie:Top:::':
         number = 1
     elif config.plugins.moviebrowser.filter.value == ':::Series:Top:::':

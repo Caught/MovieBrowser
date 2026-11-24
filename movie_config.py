@@ -1652,14 +1652,6 @@ class movieBrowserConfig(ConfigListScreen, Screen):
             getConfigListEntry(
                 _('Movie Browser Key Assignment:'),
                 config.plugins.moviebrowser.keyassign))
-        list.append(
-            getConfigListEntry(
-                _('Check for Plugin Update:'),
-                config.plugins.moviebrowser.update))
-        list.append(
-            getConfigListEntry(
-                _('Plugin Auto Update:'),
-                config.plugins.moviebrowser.autoupdate))
         self["config"].list = list
         self["config"].l.setList(list)
         
