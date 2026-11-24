@@ -23,7 +23,10 @@
 # New plugin.png logo
 # New select movie frame
 # MovieBrowser's movie player now also closes with the Exit button
-# Added TMDB Discover integration for movies
+# Added TMDB Discover integration for movies and series
+# DataBase reset fix
+# Visual text improvements
+# Auto update  
 
 from __future__ import print_function
 import datetime
@@ -33,7 +36,6 @@ from re import sub, search, findall, S, escape
 from os import statvfs, remove, rename, walk, popen, makedirs
 from os.path import exists, join, getsize, getmtime
 from enigma import (
-    RT_HALIGN_CENTER,
     RT_HALIGN_LEFT,
     RT_VALIGN_CENTER,
     eListboxPythonMultiContent,
@@ -86,7 +88,6 @@ from .library import (
     tmdb_api,
     thetvdb_api,
     quote,
-    # cleanSeriesName,
     cleanSeriesFilename,
     clean_for_search
 )
@@ -144,8 +145,7 @@ class ItemList(MenuList):
             self.l.setFont(24, gFont('Regular', 24))
 
 def showWaitBox(session, text=None):
-    # Modale melding zonder knoppen. De update daarna draait synchroon en
-    # blokkeert het scherm; de melding blijft zichtbaar tot closeWaitBox().
+    
     text = text or _('Please wait, loading database...')
     try:
         return session.open(
@@ -167,7 +167,7 @@ def closeWaitBox(session, box):
     except Exception as e:
         print('[MovieBrowser] closeWaitBox: ' + str(e))
 
-version = '4.2'
+version = '4.3'
 screenwidth = getDesktop(0).size()
 dir_plugins = "/usr/lib/enigma2/python/Plugins/Extensions/MovieBrowser"
 if dir_plugins not in path:
@@ -176,6 +176,10 @@ if dir_plugins not in path:
 # constant
 db_dir = join(dir_plugins, "db")
 log_dir = join(dir_plugins, "log")
+
+for _d in (db_dir, log_dir):
+    if not exists(_d):
+        makedirs(_d)
 
 UPDATE_LOG_PATH = join(log_dir, "update.log")
 TIMER_LOG_PATH = join(log_dir, "timer.log")
@@ -390,7 +394,7 @@ class movieBrowserMetrix(Screen):
         if config.plugins.moviebrowser.showtv.value == 'hide' or config.plugins.moviebrowser.m1v.value is True:
             self.session.nav.stopService()
 
-        if fileExists(DATABASE_PATH):
+        if fileExists(DATABASE_PATH) and not fileExists(DATABASE_RESET):
             if self.index == 0:
                 if config.plugins.moviebrowser.lastfilter.value is True:
                     with open(FILTER_PATH, 'r', encoding='utf-8') as f:
@@ -470,6 +474,8 @@ class movieBrowserMetrix(Screen):
                 self.resetTimer.callback.append(lambda: self.database_return(True))
             self.resetTimer.start(500, True)
         else:
+            if fileExists(DATABASE_PATH) and fileExists(DATABASE_RESET):
+                remove(DATABASE_RESET)
             self.close()
 
     def makeMovies(self, filter):
@@ -1823,10 +1829,6 @@ class movieBrowserMetrix(Screen):
                         self.showInfo()
 
     def showPlot(self):
-        # self['list'].hide()
-        # self['label'].hide()
-        # self['label2'].hide()
-        # self['label3'].hide()
         self['help'].hide()
         self['pvr'].hide()
         self['text'].hide()
@@ -3475,7 +3477,7 @@ class movieBrowserBackdrop(Screen):
         if config.plugins.moviebrowser.showtv.value == 'hide' or config.plugins.moviebrowser.m1v.value is True:
             self.session.nav.stopService()
 
-        if fileExists(DATABASE_PATH):
+        if fileExists(DATABASE_PATH) and not fileExists(DATABASE_RESET):
             if self.index == 0:
                 if config.plugins.moviebrowser.lastfilter.value is True:
                     self.filter = open(FILTER_PATH).read()
@@ -3554,6 +3556,8 @@ class movieBrowserBackdrop(Screen):
                 self.resetTimer.callback.append(lambda: self.database_return(True))
             self.resetTimer.start(500, True)
         else:
+            if fileExists(DATABASE_PATH) and fileExists(DATABASE_RESET):
+                remove(DATABASE_RESET)
             self.close()
 
     def makeMovies(self, filter):
@@ -4623,9 +4627,6 @@ class movieBrowserBackdrop(Screen):
         return
 
     def _infoKeyOk(self):
-        # De INFO-toets geeft vaak twee meldingen (showEventInfo + EPGPressed).
-        # Een tweede melding binnen 0,6 s negeren we, anders gaat de info
-        # meteen weer uit.
         import time
         now = time.time()
         if now - getattr(self, '_lastToggle', 0) < 0.6:
@@ -4659,7 +4660,6 @@ class movieBrowserBackdrop(Screen):
                     pass
 
             else:
-                # aan/uit: elke volgende druk zet alles weer uit
                 self.toggleCount = 0
                 self.seasonsview = False
                 self.control = False
@@ -6227,17 +6227,17 @@ class movieBrowserPosterwall(Screen):
             skincontent += ' <ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/MovieBrowser/skin/fhd/pic/setup/default_backdrop.png" position="0,0" size="1920,1080" transparent="0" zPosition="-5"/>'
             skincontent += ' <widget name="backdrop" position="0,0" size="1920,1080" scale="1" alphatest="on" transparent="0" zPosition="-4"/>'
             skincontent += ' <!-- Titolo e Visto -->'
-            skincontent += ' <widget name="name" position="503,930" size="915,143" font="Regular; 48" halign="center" valign="center" foregroundColor="yellow" backgroundColor="#000000" transparent="1" zPosition="3"/>'
+            skincontent += ' <widget name="name" position="503,930" size="915,143" font="Regular; 48" halign="center" valign="center" foregroundColor="#FFD700" shadowColor="#000000" shadowOffset="-2,-2" backgroundColor="#000000" transparent="1" zPosition="3"/>'
             skincontent += ' <widget name="seen" position="1425,965" size="60,60" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/MovieBrowser/skin/fhd/pic/browser/seen.png" transparent="1" alphatest="on" scale="1" zPosition="3"/>'
             skincontent += ' <!-- Info -->'
             skincontent += ' <widget name="ratings" position="98,986" size="315,32" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/MovieBrowser/skin/fhd/pic/browser/ratings.png" orientation="orHorizontal" alphatest="blend" zPosition="6"/>'
             skincontent += ' <widget name="ratingsback" position="98,986" size="315,32" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/MovieBrowser/skin/fhd/pic/browser/ratings_back.png" alphatest="blend" zPosition="5"/>'
-            skincontent += ' <widget name="runtime" position="1500,930" size="180,143" font="Regular;30" halign="right" foregroundColor="yellow" transparent="1" zPosition="17"/>'
-            skincontent += ' <widget name="country" position="1688,930" size="90,143" font="Regular;30" foregroundColor="yellow" transparent="1" zPosition="11"/>'
-            skincontent += ' <widget name="year" position="1785,930" size="98,143" font="Regular;30" foregroundColor="yellow" transparent="1" zPosition="15"/>'
-            skincontent += ' <widget name="plotfull" position="1116,130" size="746,500" font="Regular;28" foregroundColor="yellow" transparent="1" zPosition="30"/>'
+            skincontent += ' <widget name="runtime" position="1500,930" size="180,143" font="Regular;30" halign="right" foregroundColor="#FFD700" shadowColor="#000000" shadowOffset="-2,-2" transparent="1" zPosition="17"/>'
+            skincontent += ' <widget name="country" position="1688,930" size="90,143" font="Regular;30" foregroundColor="#FFD700" shadowColor="#000000" shadowOffset="-2,-2" transparent="1" zPosition="11"/>'
+            skincontent += ' <widget name="year" position="1785,930" size="98,143" font="Regular;30" foregroundColor="#FFD700" shadowColor="#000000" shadowOffset="-2,-2" transparent="1" zPosition="15"/>'
+            skincontent += ' <widget name="plotfull" position="1116,130" size="746,500" font="Regular;28" foregroundColor="#FFD700" shadowColor="#000000" shadowOffset="-2,-2" transparent="1" zPosition="30"/>'
             skincontent += ' <widget name="eposter" position="1113,80" size="750,422" alphatest="on" transparent="1" scale="1" zPosition="5"/>'
-            skincontent += ' <widget name="eplot" position="1116,512" size="746,165" font="Regular;24" foregroundColor="yellow" transparent="1" zPosition="31"/>'
+            skincontent += ' <widget name="eplot" position="1116,512" size="746,165" font="Regular;24" foregroundColor="#FFD700" shadowColor="#000000" shadowOffset="-2,-2" transparent="1" zPosition="31"/>'
             skincontent += ' <widget name="banner" position="1113,80" size="750,138" alphatest="on" transparent="1" scale="1" zPosition="5"/>'
             skincontent += ' <widget name="episodes" position="1113,227" size="750,405" scrollbarMode="showNever" transparent="1" zPosition="5"/>'
             skincontent += ' <widget name="audiotype" position="124,795" size="120,57" pixmaps="/usr/lib/enigma2/python/Plugins/Extensions/MovieBrowser/skin/fhd/pic/browser/dolby.png,/usr/lib/enigma2/python/Plugins/Extensions/MovieBrowser/skin/fhd/pic/browser/dolbyplus.png,/usr/lib/enigma2/python/Plugins/Extensions/MovieBrowser/skin/fhd/pic/browser/dts.png,/usr/lib/enigma2/python/Plugins/Extensions/MovieBrowser/skin/fhd/pic/browser/dtshd.png,/usr/lib/enigma2/python/Plugins/Extensions/MovieBrowser/skin/fhd/pic/browser/mp2.png" transparent="1" alphatest="blend" zPosition="9"/>'
@@ -6248,23 +6248,23 @@ class movieBrowserPosterwall(Screen):
             skincontent += ' <widget name="ddd2" position="37,795" size="75,57" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/MovieBrowser/skin/fhd/pic/browser/ddd.png" transparent="1" alphatest="blend" zPosition="9"/>'
             skincontent += ' <widget name="ratings_up" position="98,947" size="315,32" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/MovieBrowser/skin/fhd/pic/browser/ratings.png" orientation="orHorizontal" alphatest="blend" zPosition="6"/>'
             skincontent += ' <widget name="ratingsback_up" position="98,947" size="315,32" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/MovieBrowser/skin/fhd/pic/browser/ratings_back.png" alphatest="blend" zPosition="5"/>'
-            skincontent += ' <widget name="2name" position="60,45" size="683,105" font="Regular;30" foregroundColor="yellow" valign="center" transparent="1" zPosition="13"/>'
+            skincontent += ' <widget name="2name" position="60,45" size="683,105" font="Regular;30" foregroundColor="#FFD700" shadowColor="#000000" shadowOffset="-2,-2" valign="center" transparent="1" zPosition="13"/>'
             skincontent += ' <widget name="2seen" position="743,45" size="60,60" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/MovieBrowser/skin/fhd/pic/browser/seen.png" transparent="1" alphatest="on" zPosition="13"/>'
             skincontent += ' <widget name="2Rating" position="60,150" size="188,42" font="Regular;30" halign="left" foregroundColor="#ffffff" transparent="1" zPosition="14"/>'
             skincontent += ' <widget name="2ratings" position="60,195" size="315,32" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/MovieBrowser/skin/fhd/pic/browser/ratings.png" orientation="orHorizontal" alphatest="blend" zPosition="6"/>'
             skincontent += ' <widget name="2ratingsback" position="60,195" size="315,32" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/MovieBrowser/skin/fhd/pic/browser/ratings_back.png" alphatest="blend" zPosition="5"/>'
             skincontent += ' <widget name="2Director" position="60,255" size="188,42" font="Regular;30" halign="left" foregroundColor="#ffffff" transparent="1" zPosition="18"/>'
-            skincontent += ' <widget name="2director" position="60,300" size="480,42" font="Regular;30" foregroundColor="yellow" transparent="1" zPosition="19"/>'
+            skincontent += ' <widget name="2director" position="60,300" size="480,42" font="Regular;30" foregroundColor="#FFD700" shadowColor="#000000" shadowOffset="-2,-2" transparent="1" zPosition="19"/>'
             skincontent += ' <widget name="2Country" position="555,255" size="188,42" font="Regular;30" halign="left" foregroundColor="#ffffff" transparent="1" zPosition="20"/>'
-            skincontent += ' <widget name="2country" position="555,300" size="188,42" font="Regular;30" foregroundColor="yellow" transparent="1" zPosition="5"/>'
+            skincontent += ' <widget name="2country" position="555,300" size="188,42" font="Regular;30" foregroundColor="#FFD700" shadowColor="#000000" shadowOffset="-2,-2" transparent="1" zPosition="5"/>'
             skincontent += ' <widget name="2Actors" position="60,360" size="188,42" font="Regular;30" halign="left" foregroundColor="#ffffff" transparent="1" zPosition="22"/>'
-            skincontent += ' <widget name="2actors" position="60,405" size="480,153" font="Regular;30" foregroundColor="yellow" transparent="1" zPosition="23"/>'
+            skincontent += ' <widget name="2actors" position="60,405" size="480,153" font="Regular;30" foregroundColor="#FFD700" shadowColor="#000000" shadowOffset="-2,-2" transparent="1" zPosition="23"/>'
             skincontent += ' <widget name="2Year" position="555,360" size="188,42" font="Regular;30" halign="left" foregroundColor="#ffffff" transparent="1" zPosition="24"/>'
-            skincontent += ' <widget name="2year" position="555,405" size="188,42" font="Regular;30" foregroundColor="yellow" transparent="1" zPosition="25"/>'
+            skincontent += ' <widget name="2year" position="555,405" size="188,42" font="Regular;30" foregroundColor="#FFD700" shadowColor="#000000" shadowOffset="-2,-2" transparent="1" zPosition="25"/>'
             skincontent += ' <widget name="2Runtime" position="555,465" size="188,42" font="Regular;30" halign="left" foregroundColor="#ffffff" transparent="1" zPosition="26"/>'
-            skincontent += ' <widget name="2runtime" position="555,510" size="188,42" font="Regular;30" foregroundColor="yellow" transparent="1" zPosition="27"/>'
+            skincontent += ' <widget name="2runtime" position="555,510" size="188,42" font="Regular;30" foregroundColor="#FFD700" shadowColor="#000000" shadowOffset="-2,-2" transparent="1" zPosition="27"/>'
             skincontent += ' <widget name="2Genres" position="60,570" size="188,42" font="Regular;30" halign="left" foregroundColor="#ffffff" transparent="1" zPosition="28"/>'
-            skincontent += ' <widget name="2genres" position="60,615" size="750,42" font="Regular;30" foregroundColor="yellow" transparent="1" zPosition="29"/>'
+            skincontent += ' <widget name="2genres" position="60,615" size="750,42" font="Regular;30" foregroundColor="#FFD700" shadowColor="#000000" shadowOffset="-2,-2" transparent="1" zPosition="29"/>'
             skincontent += ' <widget name="goldframe" position="0,0" size="257,374" scale="1" alphatest="blend" transparent="1" zPosition="-1"/>'
             skincontent += ' <widget name="2infoback" position="38,38" size="788,645" scale="1" alphatest="blend" transparent="1" zPosition="-1"/>'
             skincontent += ' <widget name="plotfullback" position="1095,38" size="788,645" scale="1" alphatest="blend" transparent="1" zPosition="-1"/>'
@@ -6312,17 +6312,17 @@ class movieBrowserPosterwall(Screen):
             skincontent += ' <widget name="2ratings" position="40,130" size="210,21" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/MovieBrowser/skin/hd/pic/browser/ratings.png" borderWidth="0" orientation="orHorizontal" transparent="1" zPosition="15"/>'
             skincontent += ' <widget name="2ratingsback" position="40,130" size="210,21" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/MovieBrowser/skin/hd/pic/browser/ratings_back.png" alphatest="on" zPosition="16"/>'
             skincontent += ' <widget name="2Director" position="40,170" size="125,28" font="Regular;22" halign="left" foregroundColor="#ffffff" transparent="1" zPosition="18"/>'
-            skincontent += ' <widget name="2director" position="40,200" size="320,28" font="Regular;22" foregroundColor="yellow" transparent="1" zPosition="19"/>'
+            skincontent += ' <widget name="2director" position="40,200" size="320,28" font="Regular;22" foregroundColor="#FFD700" shadowColor="#000000" shadowOffset="-2,-2" transparent="1" zPosition="19"/>'
             skincontent += ' <widget name="2Country" position="370,170" size="125,28" font="Regular;22" halign="left" foregroundColor="#ffffff" transparent="1" zPosition="20"/>'
-            skincontent += ' <widget name="2country" position="370,200" size="125,28" font="Regular;22" foregroundColor="yellow" transparent="1" zPosition="21"/>'
+            skincontent += ' <widget name="2country" position="370,200" size="125,28" font="Regular;22" foregroundColor="#FFD700" shadowColor="#000000" shadowOffset="-2,-2" transparent="1" zPosition="21"/>'
             skincontent += ' <widget name="2Actors" position="40,240" size="125,28" font="Regular;22" halign="left" foregroundColor="#ffffff" transparent="1" zPosition="22"/>'
-            skincontent += ' <widget name="2actors" position="40,270" size="320,102" font="Regular;22" foregroundColor="yellow" transparent="1" zPosition="23"/>'
+            skincontent += ' <widget name="2actors" position="40,270" size="320,102" font="Regular;22" foregroundColor="#FFD700" shadowColor="#000000" shadowOffset="-2,-2" transparent="1" zPosition="23"/>'
             skincontent += ' <widget name="2Year" position="370,240" size="125,28" font="Regular;22" halign="left" foregroundColor="#ffffff" transparent="1" zPosition="24"/>'
-            skincontent += ' <widget name="2year" position="370,270" size="125,28" font="Regular;22" foregroundColor="yellow" transparent="1" zPosition="25"/>'
+            skincontent += ' <widget name="2year" position="370,270" size="125,28" font="Regular;22" foregroundColor="#FFD700" shadowColor="#000000" shadowOffset="-2,-2" transparent="1" zPosition="25"/>'
             skincontent += ' <widget name="2Runtime" position="370,310" size="125,28" font="Regular;22" halign="left" foregroundColor="#ffffff" transparent="1" zPosition="26"/>'
-            skincontent += ' <widget name="2runtime" position="370,340" size="125,28" font="Regular;22" foregroundColor="yellow" transparent="1" zPosition="27"/>'
+            skincontent += ' <widget name="2runtime" position="370,340" size="125,28" font="Regular;22" foregroundColor="#FFD700" shadowColor="#000000" shadowOffset="-2,-2" transparent="1" zPosition="27"/>'
             skincontent += ' <widget name="2Genres" position="40,380" size="125,28" font="Regular;22" halign="left" foregroundColor="#ffffff" transparent="1" zPosition="28"/>'
-            skincontent += ' <widget name="2genres" position="40,410" size="500,28" font="Regular;22" foregroundColor="yellow" transparent="1" zPosition="29"/>'
+            skincontent += ' <widget name="2genres" position="40,410" size="500,28" font="Regular;22" foregroundColor="#FFD700" shadowColor="#000000" shadowOffset="-2,-2" transparent="1" zPosition="29"/>'
             skincontent += ' <widget name="eposter" position="742,53" size="500,281" scale="1" alphatest="on" transparent="1" zPosition="30"/>'
             skincontent += ' <widget name="eplot" position="745,340" size="500,108" font="Regular;20" foregroundColor="#FFFFFF" transparent="1" zPosition="31"/>'
             skincontent += ' <widget name="banner" position="742,53" size="500,92" scale="1" alphatest="on" transparent="1" zPosition="30"/>'
@@ -6562,7 +6562,7 @@ class movieBrowserPosterwall(Screen):
         if config.plugins.moviebrowser.showtv.value == 'hide' or config.plugins.moviebrowser.m1v.value is True:
             self.session.nav.stopService()
 
-        if fileExists(DATABASE_PATH):
+        if fileExists(DATABASE_PATH) and not fileExists(DATABASE_RESET):
             if self.index == 0:
                 if config.plugins.moviebrowser.lastfilter.value is True:
                     self.filter = open(FILTER_PATH).read()
@@ -6643,6 +6643,8 @@ class movieBrowserPosterwall(Screen):
                 self.resetTimer.callback.append(lambda: self.database_return(True))
             self.resetTimer.start(500, True)
         else:
+            if fileExists(DATABASE_PATH) and fileExists(DATABASE_RESET):
+                remove(DATABASE_RESET)
             self.close()
 
     def makeMovies(self, filter):
@@ -9761,7 +9763,7 @@ class StyleMenu(Screen):
             '<ePixmap position="0,0" size="%d,%d" pixmap="%s" scale="1" '
             'zPosition="-1"/>'
             '<eLabel text="MovieBrowser" position="%d,%d" size="%d,%d" '
-            'font="LCD;%d" foregroundColor="yellow" halign="center" '
+            'font="LCD;%d" foregroundColor="#FFD700" halign="center" '
             'backgroundColor="#000000" transparent="1" zPosition="3"/>'
             '<eLabel position="%d,%d" size="%d,%d" '
             'backgroundColor="#303030" zPosition="4"/>'
@@ -9890,7 +9892,7 @@ def discoverSkin(fhd, skindir):
              'pixmap="%spic/browser/ratings.png" orientation="orHorizontal" '
              'alphatest="blend" zPosition="6"/>' % (
                  S(60), S(305), S(315), S(32), skindir))
-    x.append(lab('meta', 400, 299, 1400, 44, 34, 'yellow'))
+    x.append(lab('meta', 400, 299, 1400, 44, 34, '#FFD700', shadow=True))
     x.append(lab('genres', 60, 350, 1800, 44, 32))
     x.append(lab('director', 60, 397, 1800, 44, 32))
     x.append(lab('plot', 60, 450, 1800, 175, 30, '#FFFFFF', 'left', 5, 'top'))
@@ -9911,7 +9913,7 @@ def discoverSkin(fhd, skindir):
                  'zPosition="6"/>' % (i, S(sx), S(py - 30), S(pw), S(28),
                                       S(22)))
     x.append(pix('sel', 0, 0, 208, 308, z=4))
-    x.append(lab('status', 360, 450, 1200, 70, 40, 'yellow', 'center', 20))
+    x.append(lab('status', 360, 450, 1200, 70, 40, '#FFD700', 'center', 20))
     x.append(lab('help', 60, 1046, 1150, 32, 24, '#A0A0A0'))
     x.append(lab('credit', 1000, 1046, 860, 32, 20, '#808080', 'right'))
     x.append('</screen>')
@@ -10005,9 +10007,8 @@ class movieBrowserDiscover(Screen):
             'This product uses the TMDB API but is not endorsed or '
             'certified by TMDB.')
         self['help'].setText(
-            _('OK: Movie information') + '   ' + _('Left/Right: Movie') +
-            '   ' + _('Up/Down: Category') + '   ' + _('Red: Style') +
-            '   ' + _('Exit: Back'))
+            _('Left/Right: Movie') + '   ' + _('Up/Down: Category') +
+            '   ' + _('Red: Style'))
         for name in ('panel_info', 'panel_row'):
             if fileExists(infoBackPNG) and self[name].instance:
                 self[name].instance.setScale(1)

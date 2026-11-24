@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: moviebrowser\n"
 "POT-Creation-Date: 2026-11-13 12:00+0100\n"
-"PO-Revision-Date: 2026-11-22 17:56+0100\n"
+"PO-Revision-Date: 2026-11-24 09:11+0100\n"
 "Last-Translator: \n"
 "Language-Team: lululla\n"
 "Language: nl\n"
@@ -1143,6 +1143,39 @@ msgid ""
 msgstr ""
 "Movie Browser is bijgewerkt naar versie %s.\n"
 "GUI nu herstarten?"
+
+msgid "Airing Today"
+msgstr "Vandaag"
+
+msgid "On The Air"
+msgstr "Lopend"
+
+msgid "Creator:"
+msgstr "Bedenker:"
+
+msgid "Seasons: %s"
+msgstr "Seizoenen: %s"
+
+msgid "Discover Movies:"
+msgstr "Films ontdekken:"
+
+msgid "Discover Series:"
+msgstr "Series ontdekken:"
+
+msgid "Open"
+msgstr "Openen"
+
+msgid "Movie Browser Key Assignment:"
+msgstr "Toetstoewijzing Movie Browser:"
+
+msgid "Popular, top rated and airing series from TMDb"
+msgstr "Populaire, best beoordeelde en lopende series van TMDb"
+
+msgid "Left/Right: Series"
+msgstr "Links/rechts: Serie"
+
+msgid "Menu: Setup"
+msgstr "Menu: Instellingen"
 
 #~ msgid "Edit"
 #~ msgstr "Bewerken"

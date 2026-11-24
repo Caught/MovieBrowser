@@ -179,3 +179,13 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+
+# Movie Browser: own database and logs refuse to upload
+db/*
+!db/last
+!db/filter
+!db/cache/
+db/cache/*
+!db/cache/default_*
+log/*
+!log/.gitkeep
