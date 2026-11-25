@@ -259,6 +259,8 @@ config.plugins.moviebrowser.restore = ConfigYesNo(default=False)
 config.plugins.moviebrowser.update = ConfigYesNo(default=False)
 config.plugins.moviebrowser.discovermovies = ConfigSelection(default='open', choices=[('open', _('Open'))])
 config.plugins.moviebrowser.discoverseries = ConfigSelection(default='open', choices=[('open', _('Open'))])
+config.plugins.moviebrowser.discoveroverlay = ConfigSelection(default='medium', choices=[
+    ('off', _('Off')), ('light', _('Light')), ('medium', _('Medium')), ('dark', _('Dark'))])
 config.plugins.moviebrowser.keyassign = ConfigSelection(default='open', choices=[('open', _('Open'))])
 config.plugins.moviebrowser.autoupdate = ConfigSelection(default='off', choices=[('off', _('Off')), ('check', _('Check only')), ('install', _('Install automatically'))])
 config.plugins.moviebrowser.transparency = ConfigSlider(
@@ -1526,6 +1528,10 @@ class movieBrowserConfig(ConfigListScreen, Screen):
             getConfigListEntry(
                 _('Discover Series:'),
                 config.plugins.moviebrowser.discoverseries))
+        list.append(
+            getConfigListEntry(
+                _('Discover Background Overlay:'),
+                config.plugins.moviebrowser.discoveroverlay))
         list.append(
             getConfigListEntry(
                 _('Movies Style:'),

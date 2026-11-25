@@ -30,6 +30,7 @@
 # Auto update  
 # add languages
 # Cleanup: removed leftover TheTVDb
+# Discover: optional background overlay (Off/Light/Medium/Dark) for better text readability on light backdrops
 
 from __future__ import print_function
 import datetime
@@ -9880,6 +9881,7 @@ def discoverSkin(fhd, skindir):
              'size="%d,%d" flags="wfNoBorder" title="  ">' % (W, H))
     x.append(pix('backdrop', 0, 0, 1920, 1080, z=-5).replace(
         'size="%d,%d"' % (S(1920), S(1080)), 'size="%d,%d"' % (W, H)))
+    x.append(pix('overlay', 0, 0, 1920, 1080, z=-4))
     x.append(pix('panel_info', 30, 190, 1860, 445, z=-3))
     x.append(pix('panel_row', 30, ROW_Y, 1860, 1080 - ROW_Y, z=-3))
     x.append(lab('head', 60, 30, 1200, 60, 40, '#B0B0B0'))
@@ -9968,7 +9970,7 @@ class movieBrowserDiscover(Screen):
         self['ratings'].hide()
         self['ratingsback'] = Pixmap()
         self['ratingsback'].hide()
-        for name in ('backdrop', 'panel_info', 'panel_row', 'sel'):
+        for name in ('backdrop', 'overlay', 'panel_info', 'panel_row', 'sel'):
             self[name] = Pixmap()
         for i in range(DISCOVER_VISIBLE):
             self['pos%d' % i] = Pixmap()
@@ -9981,7 +9983,8 @@ class movieBrowserDiscover(Screen):
             'ColorActions',
             'ChannelSelectBaseActions',
             'InfobarActions',
-            'InfobarEPGActions'
+            'InfobarEPGActions',
+            'MovieSelectionActions'
         ], {
             'ok': self.toggleInfo,
             'cancel': self.exit,
@@ -9992,6 +9995,7 @@ class movieBrowserDiscover(Screen):
             'nextBouquet': self.nextCategory,
             'prevBouquet': self.prevCategory,
             'red': self.switchStyle,
+            'contextMenu': self.openSetup,
             'showEventInfo': self.toggleInfo,
             'EPGPressed': self.toggleInfo
         }, -1)
@@ -10019,8 +10023,19 @@ class movieBrowserDiscover(Screen):
             self['sel'].instance.setScale(1)
             self['sel'].instance.setPixmapFromFile(self.framePNG)
         self.showDefaultBackdrop()
+        self.setOverlay()
         self.loadLibrary()
         self.setCategory(0)
+
+    def setOverlay(self):
+        mode = config.plugins.moviebrowser.discoveroverlay.value
+        png = skin_directory + 'pic/browser/overlay_%s.png' % mode
+        if mode != 'off' and fileExists(png) and self['overlay'].instance:
+            self['overlay'].instance.setScale(1)
+            self['overlay'].instance.setPixmapFromFile(png)
+            self['overlay'].show()
+        else:
+            self['overlay'].hide()
 
     def showDefaultBackdrop(self):
         if fileExists(default_backdrop) and self['backdrop'].instance:
@@ -10487,6 +10502,18 @@ class movieBrowserDiscover(Screen):
             self['plotfull'].hide()
             self['plot'].show()
 
+    def openSetup(self):
+        self.session.openWithCallback(self.setupClosed, movieBrowserConfig)
+
+    def setupClosed(self, result=None):
+        self.setOverlay()
+        self.cachefolder = config.plugins.moviebrowser.cachefolder.value
+        if self.language != config.plugins.moviebrowser.language.value:
+            self.language = config.plugins.moviebrowser.language.value
+            self.cache = {}
+            self.details = {}
+            self.setCategory(self.cat)
+    
     def switchStyle(self):
         self.session.openWithCallback(
             self.styleChosen,

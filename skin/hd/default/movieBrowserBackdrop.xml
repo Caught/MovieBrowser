@@ -13,8 +13,8 @@
 	<widget name="name" position="40,30" size="455,70" font="Regular;28" foregroundColor="#FFFFFF" valign="center" transparent="1" zPosition="3"/>
 	<widget name="seen" position="495,30" size="40,40" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/MovieBrowser/skin/hd/pic/browser/seen.png" transparent="1" alphatest="on" zPosition="3"/>
 	<widget name="Rating" position="40,100" size="125,28" font="Regular;22" halign="left" foregroundColor="#FFFFFF" transparent="1" zPosition="4"/>
-	<widget name="ratings" position="40,130" size="210,21" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/MovieBrowser/skin/hd/pic/browser/ratings.png" borderWidth="0" orientation="orHorizontal" transparent="1" zPosition="5"/>
-	<widget name="ratingsback" position="40,130" size="210,21" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/MovieBrowser/skin/hd/pic/browser/ratings_back.png" alphatest="on" zPosition="6"/>
+	<widget name="ratings" position="40,130" size="210,21" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/MovieBrowser/skin/hd/pic/browser/ratings.png" borderWidth="0" orientation="orHorizontal" alphatest="blend" zPosition="6"/>
+	<widget name="ratingsback" position="40,130" size="210,21" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/MovieBrowser/skin/hd/pic/browser/ratings_back.png" alphatest="blend" zPosition="5"/>
 	<widget name="Director" position="40,170" size="125,28" font="Regular;22" halign="left" foregroundColor="#FFD700" shadowColor="#000000" shadowOffset="-2,-2" transparent="1" zPosition="8"/>
 	<widget name="director" position="40,200" size="320,28" font="Regular;22" foregroundColor="#FFFFFF" transparent="1" zPosition="9"/>
 	<widget name="Country" position="370,170" size="125,28" font="Regular;22" halign="left" foregroundColor="#FFD700" shadowColor="#000000" shadowOffset="-2,-2" transparent="1" zPosition="10"/>
