@@ -9,3 +9,10 @@ Changelog v4.2
 # New plugin.png logo
 # New select movie frame
 # Movie's player now also closes with the Exit button.
+Changelog v4.3
+# Added TMDB Discover integration for movies and series
+# DataBase reset fix
+# Visual text improvements
+# Auto update  
+# add languages
+# Cleanup: removed leftover TheTVDb
