@@ -1615,7 +1615,6 @@ class movieBrowserConfig(ConfigListScreen, Screen):
                 getConfigListEntry(
                     _('Hide Plugin during Update:'),
                     config.plugins.moviebrowser.hideupdate))
-
         list.append(
             getConfigListEntry(
                 _('Reset Database:'),
@@ -1640,10 +1639,6 @@ class movieBrowserConfig(ConfigListScreen, Screen):
             getConfigListEntry(
                 _('Start Plugin with Video Button:'),
                 config.plugins.moviebrowser.videobutton))
-        list.append(
-            getConfigListEntry(
-                _('Plugin in Enigma Menu:'),
-                config.plugins.moviebrowser.showmenu))
         list.append(
             getConfigListEntry(
                 _('Plugin in Enigma Menu:'),

@@ -13,7 +13,7 @@
 #  removed unused code
 #  new api v4
 #  fixed banner on MovieList
-# Fixes (Nov 2026 - Caught):
+# Fixes v4.2 (Nov 2026 - Caught):
 # library.py: series info and covers now come from TMDb (TheTVDb API is gone)
 # Library Scan: Fixed filename recognition, so movies aren't re-added as duplicates on every scan.
 # TMDb Search: Fixed a title-filtering bug that cut off movie names after the first word.
@@ -23,10 +23,13 @@
 # New plugin.png logo
 # New select movie frame
 # MovieBrowser's movie player now also closes with the Exit button
+# Fixes v4.3
 # Added TMDB Discover integration for movies and series
 # DataBase reset fix
 # Visual text improvements
 # Auto update  
+# add languages
+# Cleanup: removed leftover TheTVDb
 
 from __future__ import print_function
 import datetime
@@ -3438,7 +3441,6 @@ class movieBrowserBackdrop(Screen):
                 'leavePlayer': self.markSeen,
                 '1': self.controlMovies,
                 '2': self.renewTMDb,
-                '3': self.renewTVDb,
                 '4': self.filterSeen,
                 '5': self.toogleContent,
                 '6': self.filterFolder,
@@ -6510,7 +6512,6 @@ class movieBrowserPosterwall(Screen):
                 'leavePlayer': self.markSeen,
                 '1': self.controlMovies,
                 '2': self.renewTMDb,
-                '3': self.renewTVDb,
                 '4': self.filterSeen,
                 '5': self.toogleContent,
                 '6': self.filterFolder,
